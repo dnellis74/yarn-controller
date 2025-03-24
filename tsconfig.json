@@ -1,26 +1,19 @@
 {
+  "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx"
+    "esModuleInterop": true,
+    "jsx": "react",
+    "jsxFactory": "h",
+    "allowJs": true,
+    "noImplicitAny": false,
+    "declaration": false,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "lib": ["es2019", "dom"],
   },
   "include": [
-    "src"
+    "src/**/*.tsx",
+    "src/**/*.ts"
   ]
 }
