@@ -596,45 +596,63 @@ export class Xterm {
         try {
             const containerElement = terminal.element as HTMLElement;
             const parentElement = containerElement.parentElement as HTMLElement;
-            const parentWidth = parentElement.clientWidth;
-            const parentHeight = parentElement.clientHeight;
+
+            // Get the actual viewport dimensions, accounting for mobile scaling
+            const viewportWidth = Math.min(window.innerWidth, parentElement.clientWidth);
+            const viewportHeight = Math.min(window.innerHeight, parentElement.clientHeight);
 
             // Check if we're on a mobile device
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-            // Calculate base font size that would fit the container
-            let baseFontSize: number;
-            if (isMobile) {
-                // On mobile, use a more aggressive scaling factor
-                const orientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
-                const scaleFactor = orientation === 'landscape' ? 0.8 : 1;
+            // Calculate character dimensions based on current font metrics
+            const charWidth = terminal.options.letterSpacing || 1;
+            const charHeight = terminal.options.lineHeight || 1;
+            const currentFontSize = terminal.options.fontSize || 14;
 
-                baseFontSize = Math.min(
-                    (parentWidth * scaleFactor) / (80 * (terminal.options.letterSpacing || 1)),
-                    (parentHeight * scaleFactor) / (24 * (terminal.options.lineHeight || 1))
-                );
-            } else {
-                baseFontSize = Math.min(
-                    parentWidth / (80 * (terminal.options.letterSpacing || 1)),
-                    parentHeight / (24 * (terminal.options.lineHeight || 1))
-                );
+            // Calculate dimensions that would fit the minimum requirements (80x24)
+            const minWidth = 80 * charWidth;
+            const minHeight = 24 * charHeight;
+
+            // Calculate the maximum font size that would allow our minimum dimensions
+            let maxFontSize = Math.min(
+                (viewportWidth / minWidth) * currentFontSize,
+                (viewportHeight / minHeight) * currentFontSize
+            );
+
+            if (isMobile) {
+                // On mobile, we want to be more aggressive with size reduction
+                const orientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+                const scaleFactor = orientation === 'landscape' ? 0.7 : 0.9;
+                maxFontSize *= scaleFactor;
             }
 
-            // Set font size before fitting to ensure proper character dimensions
-            terminal.options.fontSize = Math.max(5, Math.floor(baseFontSize));
+            // Apply the new font size, ensuring it doesn't go below our minimum
+            terminal.options.fontSize = Math.max(5, Math.floor(maxFontSize));
 
-            // Perform initial fit with new font size
+            // First fit to see what dimensions we get
             fitAddon.fit();
 
-            // Get resulting dimensions
+            // Get resulting dimensions and ensure they meet our minimum
             const { cols, rows } = terminal;
-
-            // If dimensions are still below minimum after fit, force them
             if (cols < 80 || rows < 24) {
+                // If we're still too small, force the minimum dimensions
                 terminal.resize(Math.max(80, cols), Math.max(24, rows));
+
+                // Adjust font size down if needed to accommodate the forced dimensions
+                const scaleFactor = Math.min(
+                    viewportWidth / (80 * charWidth * (terminal.options.fontSize || 14)),
+                    viewportHeight / (24 * charHeight * (terminal.options.fontSize || 14))
+                );
+
+                if (scaleFactor < 1) {
+                    terminal.options.fontSize = Math.max(
+                        5,
+                        Math.floor((terminal.options.fontSize || 14) * scaleFactor)
+                    );
+                }
             }
 
-            // Final fit to ensure everything is aligned
+            // Final fit to ensure everything is properly aligned
             fitAddon.fit();
             terminal.scrollToBottom();
 
