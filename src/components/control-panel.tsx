@@ -27,20 +27,24 @@ export class ControlPanel extends Component<ControlPanelProps> {
         onControlMouseLeave,
         position,
     }: ControlPanelProps) {
+        const isLandscape = window.innerWidth > window.innerHeight;
         const panelStyle = {
-            width: '60px',
-            minWidth: '60px',
+            width: isLandscape ? '60px' : '100%',
+            minWidth: isLandscape ? '60px' : 'auto',
+            height: isLandscape ? '100%' : '60px',
+            minHeight: isLandscape ? 'auto' : '60px',
             display: 'flex',
-            flexDirection: 'column' as const,
+            flexDirection: isLandscape ? ('column' as const) : ('row' as const),
             gap: '8px',
             padding: '8px',
-            paddingBottom: '16px',
+            paddingBottom: isLandscape ? '16px' : '8px',
+            paddingRight: isLandscape ? '8px' : '16px',
             backgroundColor: '#1a1a1a',
             borderRight: position === 'left' ? '1px solid #333' : 'none',
             borderLeft: position === 'right' ? '1px solid #333' : 'none',
+            borderBottom: !isLandscape ? '1px solid #333' : 'none',
             overflow: 'hidden',
-            justifyContent: 'flex-end',
-            height: '100%',
+            justifyContent: isLandscape ? 'flex-end' : 'flex-start',
         };
 
         const getButtonStyle = (control: Control) => ({

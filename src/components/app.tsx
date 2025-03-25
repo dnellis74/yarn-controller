@@ -82,9 +82,14 @@ interface Control {
     color: string;
 }
 
-export class App extends Component {
+interface State {
+    isLandscape: boolean;
+}
+
+export class App extends Component<{}, State> {
     private terminalRef: Terminal | null = null;
     private activeControl: ControlAction | null = null;
+    private orientationChangeHandler: (event: Event) => void;
 
     private controls: Control[] = [
         { action: 'moveUp', label: '^', color: '#2196F3' },
@@ -94,6 +99,31 @@ export class App extends Component {
         { action: 'actionA', label: 'A', color: '#f44336' },
         { action: 'actionB', label: 'B', color: '#f44336' },
     ];
+
+    constructor() {
+        super();
+        this.state = {
+            isLandscape: window.innerWidth > window.innerHeight,
+        };
+        this.orientationChangeHandler = this.handleOrientationChange.bind(this);
+    }
+
+    componentDidMount() {
+        window.addEventListener('resize', this.orientationChangeHandler);
+        window.addEventListener('orientationchange', this.orientationChangeHandler);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.orientationChangeHandler);
+        window.removeEventListener('orientationchange', this.orientationChangeHandler);
+    }
+
+    private handleOrientationChange = () => {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        if (this.state.isLandscape !== isLandscape) {
+            this.setState({ isLandscape });
+        }
+    };
 
     private handleControl = (control: Control) => {
         this.activeControl = control.action;
@@ -120,24 +150,40 @@ export class App extends Component {
     };
 
     render() {
+        const { isLandscape } = this.state;
         const appStyle = {
             height: '100vh',
             width: '100vw',
             display: 'flex',
-            flexDirection: 'row' as const,
+            flexDirection: isLandscape ? ('row' as const) : ('column' as const),
             overflow: 'hidden',
         };
 
         const terminalContainerStyle = {
             flex: 1,
             minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column' as const,
+            minHeight: isLandscape ? '100%' : 'calc(100% - 120px)',
+            height: isLandscape ? '100%' : 'calc(100% - 120px)',
+            position: 'relative' as const,
             overflow: 'hidden',
         };
+
+        const controls = isLandscape
+            ? {
+                  left: this.controls.slice(0, 4),
+                  right: this.controls.slice(4),
+              }
+            : {
+                  left: this.controls.slice(0, 3),
+                  right: this.controls.slice(3),
+              };
 
         return (
             <div style={appStyle}>
                 <ControlPanel
-                    controls={this.controls.slice(0, 4)}
+                    controls={controls.left}
                     activeControl={this.activeControl}
                     onControlClick={this.handleControl}
                     onControlMouseDown={this.handleControlMouseDown}
@@ -159,7 +205,7 @@ export class App extends Component {
                 </div>
 
                 <ControlPanel
-                    controls={this.controls.slice(4)}
+                    controls={controls.right}
                     activeControl={this.activeControl}
                     onControlClick={this.handleControl}
                     onControlMouseDown={this.handleControlMouseDown}

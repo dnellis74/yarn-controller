@@ -21,29 +21,102 @@ export interface TerminalHandle {
 export class Terminal extends Component<Props, State> {
     private container: HTMLElement;
     private xterm: Xterm;
+    private resizeObserver: ResizeObserver;
+    private resizeTimeout: number | null = null;
+    private isResizing = false;
 
     constructor(props: Props) {
         super();
+        this.state = { modal: false };
         this.xterm = new Xterm(props, this.showModal);
+        this.resizeObserver = new ResizeObserver(entries => {
+            const entry = entries[0];
+            if (entry) {
+                this.handleResize();
+            }
+        });
     }
 
     async componentDidMount() {
         await this.xterm.refreshToken();
         this.xterm.open(this.container);
         this.xterm.connect();
+
+        // Initial fit
+        setTimeout(() => {
+            this.handleResize();
+            this.resizeObserver.observe(this.container);
+            window.addEventListener('resize', this.handleWindowResize);
+        }, 100);
     }
 
     componentWillUnmount() {
+        if (this.resizeTimeout) {
+            window.clearTimeout(this.resizeTimeout);
+        }
+        window.removeEventListener('resize', this.handleWindowResize);
+        this.resizeObserver.disconnect();
         this.xterm.dispose();
     }
+
+    private handleWindowResize = () => {
+        if (!this.isResizing) {
+            this.isResizing = true;
+            if (this.resizeTimeout) {
+                window.clearTimeout(this.resizeTimeout);
+            }
+            this.resizeTimeout = window.setTimeout(() => {
+                this.handleResize();
+                this.isResizing = false;
+            }, 16); // Approximately one frame at 60fps
+        }
+    };
+
+    private handleResize = () => {
+        if (!this.container) return;
+
+        const { width, height } = this.container.getBoundingClientRect();
+        if (width <= 0 || height <= 0) return;
+
+        requestAnimationFrame(() => {
+            try {
+                this.xterm.fit();
+                // Get the new dimensions and send them to the server
+                const terminal = this.xterm.getTerminal();
+                const { cols, rows } = terminal;
+                this.xterm.sendResize(cols, rows);
+
+                // Force a second fit after a short delay to handle any layout adjustments
+                setTimeout(() => {
+                    this.xterm.fit();
+                    const terminal = this.xterm.getTerminal();
+                    const { cols, rows } = terminal;
+                    this.xterm.sendResize(cols, rows);
+                }, 50);
+            } catch (e) {
+                console.error('Error during terminal resize:', e);
+            }
+        });
+    };
 
     sendControl = (action: ControlAction) => {
         this.xterm.sendControl(action);
     };
 
     render({ id }: Props, { modal }: State) {
+        const containerStyle = {
+            width: '100%',
+            height: '100%',
+            position: 'relative' as const,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column' as const,
+            minHeight: '0',
+            flex: '1 1 auto',
+        };
+
         return (
-            <div id={id} ref={c => (this.container = c as HTMLElement)}>
+            <div id={id} style={containerStyle} ref={c => (this.container = c as HTMLElement)}>
                 <Modal show={modal}>
                     <label class="file-label">
                         <input onChange={this.sendFile} class="file-input" type="file" multiple />

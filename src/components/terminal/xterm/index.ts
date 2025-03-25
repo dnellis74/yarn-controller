@@ -536,7 +536,6 @@ export class Xterm {
 
     @bind
     public sendControl(action: ControlAction) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { socket, textEncoder } = this;
         if (socket?.readyState !== WebSocket.OPEN) return;
 
@@ -544,5 +543,34 @@ export class Xterm {
         payload[0] = Command.INPUT.charCodeAt(0);
         payload[1] = action.charCodeAt(0);
         socket.send(payload);
+    }
+
+    @bind
+    public fit() {
+        const { terminal, fitAddon } = this;
+        if (!terminal || !fitAddon) return;
+
+        try {
+            fitAddon.fit();
+            terminal.scrollToBottom();
+            // Force a redraw
+            const { cols, rows } = terminal;
+            this.sendResize(cols, rows);
+        } catch (e) {
+            console.error('Error fitting terminal:', e);
+        }
+    }
+
+    @bind
+    public sendResize(cols: number, rows: number) {
+        const { socket, textEncoder } = this;
+        if (socket?.readyState !== WebSocket.OPEN) return;
+
+        const msg = JSON.stringify({ columns: cols, rows: rows });
+        socket.send(textEncoder.encode(Command.RESIZE_TERMINAL + msg));
+    }
+
+    public getTerminal() {
+        return this.terminal;
     }
 }
