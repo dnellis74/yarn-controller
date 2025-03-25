@@ -539,10 +539,34 @@ export class Xterm {
         const { socket, textEncoder } = this;
         if (socket?.readyState !== WebSocket.OPEN) return;
 
-        const payload = new Uint8Array(2);
+        let data: string;
+        switch (action) {
+            case 'moveUp':
+                data = '\x1b[A'; // Up arrow
+                break;
+            case 'moveDown':
+                data = '\x1b[B'; // Down arrow
+                break;
+            case 'moveRight':
+                data = '\x1b[C'; // Right arrow
+                break;
+            case 'moveLeft':
+                data = '\x1b[D'; // Left arrow
+                break;
+            case 'actionA':
+                data = 'a';
+                break;
+            case 'actionB':
+                data = 'b';
+                break;
+            default:
+                return;
+        }
+
+        const payload = new Uint8Array(data.length + 1);
         payload[0] = Command.INPUT.charCodeAt(0);
-        payload[1] = action.charCodeAt(0);
-        socket.send(payload);
+        const stats = textEncoder.encodeInto(data, payload.subarray(1));
+        socket.send(payload.subarray(0, (stats.written as number) + 1));
     }
 
     @bind

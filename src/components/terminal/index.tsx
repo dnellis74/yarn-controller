@@ -12,6 +12,10 @@ interface Props extends XtermOptions {
 
 interface State {
     modal: boolean;
+    dimensions: {
+        cols: number;
+        rows: number;
+    };
 }
 
 export interface TerminalHandle {
@@ -27,7 +31,10 @@ export class Terminal extends Component<Props, State> {
 
     constructor(props: Props) {
         super();
-        this.state = { modal: false };
+        this.state = {
+            modal: false,
+            dimensions: { cols: 0, rows: 0 },
+        };
         this.xterm = new Xterm(props, this.showModal);
         this.resizeObserver = new ResizeObserver(entries => {
             const entry = entries[0];
@@ -84,6 +91,7 @@ export class Terminal extends Component<Props, State> {
                 // Get the new dimensions and send them to the server
                 const terminal = this.xterm.getTerminal();
                 const { cols, rows } = terminal;
+                this.setState({ dimensions: { cols, rows } });
                 this.xterm.sendResize(cols, rows);
 
                 // Force a second fit after a short delay to handle any layout adjustments
@@ -91,6 +99,7 @@ export class Terminal extends Component<Props, State> {
                     this.xterm.fit();
                     const terminal = this.xterm.getTerminal();
                     const { cols, rows } = terminal;
+                    this.setState({ dimensions: { cols, rows } });
                     this.xterm.sendResize(cols, rows);
                 }, 50);
             } catch (e) {
@@ -103,7 +112,7 @@ export class Terminal extends Component<Props, State> {
         this.xterm.sendControl(action);
     };
 
-    render({ id }: Props, { modal }: State) {
+    render({ id }: Props, { modal, dimensions }: State) {
         const containerStyle = {
             width: '100%',
             height: '100%',
@@ -115,8 +124,25 @@ export class Terminal extends Component<Props, State> {
             flex: '1 1 auto',
         };
 
+        const debugStyle = {
+            position: 'absolute' as const,
+            top: '5px',
+            right: '5px',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            color: '#fff',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            fontSize: '12px',
+            fontFamily: 'monospace',
+            zIndex: 1000,
+            pointerEvents: 'none' as const,
+        };
+
         return (
             <div id={id} style={containerStyle} ref={c => (this.container = c as HTMLElement)}>
+                <div style={debugStyle}>
+                    {dimensions.cols}x{dimensions.rows}
+                </div>
                 <Modal show={modal}>
                     <label class="file-label">
                         <input onChange={this.sendFile} class="file-input" type="file" multiple />
