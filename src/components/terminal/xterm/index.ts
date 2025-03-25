@@ -200,8 +200,27 @@ export class Xterm {
                 this.overlayAddon?.showOverlay('\u2702', 200);
             })
         );
-        register(addEventListener(window, 'resize', () => fitAddon.fit()));
+        register(addEventListener(window, 'resize', () => this.handleResize()));
+        register(
+            addEventListener(window, 'orientationchange', () => {
+                // Small delay to ensure new dimensions are available
+                setTimeout(() => this.handleResize(), 100);
+            })
+        );
         register(addEventListener(window, 'beforeunload', this.onWindowUnload));
+    }
+
+    @bind
+    private handleResize() {
+        const { terminal } = this;
+        if (!terminal || !terminal.element) return;
+
+        // Force a reflow to get accurate dimensions after orientation change
+        terminal.element.style.display = 'none';
+        void terminal.element.offsetHeight;
+        terminal.element.style.display = '';
+
+        this.fit();
     }
 
     @bind
@@ -575,11 +594,52 @@ export class Xterm {
         if (!terminal || !fitAddon) return;
 
         try {
+            const containerElement = terminal.element as HTMLElement;
+            const parentElement = containerElement.parentElement as HTMLElement;
+            const parentWidth = parentElement.clientWidth;
+            const parentHeight = parentElement.clientHeight;
+
+            // Check if we're on a mobile device
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+            // Calculate base font size that would fit the container
+            let baseFontSize: number;
+            if (isMobile) {
+                // On mobile, use a more aggressive scaling factor
+                const orientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+                const scaleFactor = orientation === 'landscape' ? 0.8 : 1;
+
+                baseFontSize = Math.min(
+                    (parentWidth * scaleFactor) / (80 * (terminal.options.letterSpacing || 1)),
+                    (parentHeight * scaleFactor) / (24 * (terminal.options.lineHeight || 1))
+                );
+            } else {
+                baseFontSize = Math.min(
+                    parentWidth / (80 * (terminal.options.letterSpacing || 1)),
+                    parentHeight / (24 * (terminal.options.lineHeight || 1))
+                );
+            }
+
+            // Set font size before fitting to ensure proper character dimensions
+            terminal.options.fontSize = Math.max(5, Math.floor(baseFontSize));
+
+            // Perform initial fit with new font size
+            fitAddon.fit();
+
+            // Get resulting dimensions
+            const { cols, rows } = terminal;
+
+            // If dimensions are still below minimum after fit, force them
+            if (cols < 80 || rows < 24) {
+                terminal.resize(Math.max(80, cols), Math.max(24, rows));
+            }
+
+            // Final fit to ensure everything is aligned
             fitAddon.fit();
             terminal.scrollToBottom();
-            // Force a redraw
-            const { cols, rows } = terminal;
-            this.sendResize(cols, rows);
+
+            // Send the final dimensions
+            this.sendResize(terminal.cols, terminal.rows);
         } catch (e) {
             console.error('Error fitting terminal:', e);
         }
