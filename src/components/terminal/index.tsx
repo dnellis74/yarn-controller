@@ -143,10 +143,13 @@ export class Terminal extends Component<Props, State> {
             pointerEvents: 'none' as const,
         };
 
+        const terminal = this.xterm.getTerminal();
+        const fontSize = terminal?.options?.fontSize || '?';
+
         return (
             <div id={id} style={containerStyle} ref={c => (this.container = c as HTMLElement)}>
                 <div style={debugStyle}>
-                    {dimensions.cols}x{dimensions.rows}
+                    {dimensions.cols}x{dimensions.rows} @ {fontSize}px
                 </div>
                 <Modal show={modal}>
                     <label class="file-label">
