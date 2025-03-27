@@ -1,6 +1,7 @@
 import { h, Component } from 'preact';
 import { Terminal } from './terminal';
-import { ControlPanel } from './control-panel';
+import { DirectionalControls } from './directional-controls';
+import { ActionControls } from './action-controls';
 import { ControlAction } from '../types/controls';
 
 import type { ITerminalOptions, ITheme } from '@xterm/xterm';
@@ -118,14 +119,11 @@ export class App extends Component<{}, State> {
         window.removeEventListener('orientationchange', this.orientationChangeHandler);
     }
 
-    private handleOrientationChange = () => {
-        const isLandscape = window.innerWidth > window.innerHeight;
-        if (this.state.isLandscape !== isLandscape) {
-            this.setState({ isLandscape });
-        }
+    handleOrientationChange = () => {
+        this.setState({ isLandscape: window.innerWidth > window.innerHeight });
     };
 
-    private handleControl = (control: Control) => {
+    handleControl = (control: Control) => {
         this.activeControl = control.action;
         this.terminalRef?.sendControl(control.action);
         setTimeout(() => {
@@ -134,17 +132,17 @@ export class App extends Component<{}, State> {
         }, 200);
     };
 
-    private handleControlMouseDown = (action: ControlAction) => {
+    handleControlMouseDown = (action: ControlAction) => {
         this.activeControl = action;
         this.forceUpdate();
     };
 
-    private handleControlMouseUp = () => {
+    handleControlMouseUp = () => {
         this.activeControl = null;
         this.forceUpdate();
     };
 
-    private handleControlMouseLeave = () => {
+    handleControlMouseLeave = () => {
         this.activeControl = null;
         this.forceUpdate();
     };
@@ -170,26 +168,15 @@ export class App extends Component<{}, State> {
             overflow: 'hidden',
         };
 
-        const controls = isLandscape
-            ? {
-                  left: this.controls.slice(0, 4),
-                  right: this.controls.slice(4),
-              }
-            : {
-                  left: this.controls.slice(0, 3),
-                  right: this.controls.slice(3),
-              };
-
         return (
             <div style={appStyle}>
-                <ControlPanel
-                    controls={controls.left}
+                <DirectionalControls
+                    controls={this.controls}
                     activeControl={this.activeControl}
                     onControlClick={this.handleControl}
                     onControlMouseDown={this.handleControlMouseDown}
                     onControlMouseUp={this.handleControlMouseUp}
                     onControlMouseLeave={this.handleControlMouseLeave}
-                    position="left"
                 />
 
                 <div style={terminalContainerStyle}>
@@ -204,14 +191,13 @@ export class App extends Component<{}, State> {
                     />
                 </div>
 
-                <ControlPanel
-                    controls={controls.right}
+                <ActionControls
+                    controls={this.controls}
                     activeControl={this.activeControl}
                     onControlClick={this.handleControl}
                     onControlMouseDown={this.handleControlMouseDown}
                     onControlMouseUp={this.handleControlMouseUp}
                     onControlMouseLeave={this.handleControlMouseLeave}
-                    position="right"
                 />
             </div>
         );
