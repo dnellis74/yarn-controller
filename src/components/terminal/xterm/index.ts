@@ -172,7 +172,7 @@ export class Xterm {
 
     @bind
     private initListeners() {
-        const { terminal, fitAddon, overlayAddon, register, sendData } = this;
+        const { terminal, overlayAddon, register, sendData } = this;
         register(
             terminal.onTitleChange(data => {
                 if (data && data !== '' && !this.titleFixed) {

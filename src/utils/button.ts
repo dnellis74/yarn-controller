@@ -14,4 +14,4 @@ export const isDirectionalControl = (control: Control): boolean => {
 
 export const isActionControl = (control: Control): boolean => {
     return ['actionA', 'actionB'].includes(control.action);
-}; 
+};

@@ -1,5 +1,5 @@
 import { h, Component } from 'preact';
-import { Control, ControlPanelProps, containerStyle } from '../types/controls';
+import { ControlPanelProps, containerStyle } from '../types/controls';
 import { Button } from './button';
 import { isActionControl } from '../utils/button';
 
