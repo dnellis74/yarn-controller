@@ -1,5 +1,6 @@
 import { h, Component } from 'preact';
 import { ControlAction } from '../types/controls';
+import { Button } from './button';
 
 interface Control {
     action: ControlAction;
@@ -49,27 +50,6 @@ export class DirectionalControls extends Component<DirectionalControlsProps> {
             padding: '0 4px',
         };
 
-        const getButtonStyle = (control: Control) => ({
-            padding: '4px',
-            backgroundColor: 'transparent',
-            color: control.color,
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontFamily: 'monospace',
-            whiteSpace: 'pre',
-            lineHeight: 1,
-            width: '24px',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s ease',
-            transform: activeControl === control.action ? 'scale(0.95)' : 'scale(1)',
-            opacity: activeControl === control.action ? 0.8 : 1,
-            boxShadow: activeControl === control.action ? '0 2px 4px rgba(0,0,0,0.2)' : 'none',
-        });
-
         const getGridPosition = (control: Control) => {
             switch (control.action) {
                 case 'moveUp':
@@ -93,18 +73,16 @@ export class DirectionalControls extends Component<DirectionalControlsProps> {
             <div style={containerStyle}>
                 <div style={gridStyle}>
                     {directionalControls.map(control => (
-                        <button
+                        <Button
                             key={control.action}
-                            onClick={() => onControlClick(control)}
-                            style={{ ...getButtonStyle(control), ...getGridPosition(control) }}
-                            onMouseDown={() => onControlMouseDown(control.action)}
+                            control={control}
+                            activeControl={activeControl}
+                            onClick={onControlClick}
+                            onMouseDown={onControlMouseDown}
                             onMouseUp={onControlMouseUp}
                             onMouseLeave={onControlMouseLeave}
-                        >
-                            {`╔═══╗
-║ ${control.label} ║
-╚═══╝`}
-                        </button>
+                            style={getGridPosition(control)}
+                        />
                     ))}
                 </div>
             </div>
