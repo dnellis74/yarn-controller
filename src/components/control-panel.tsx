@@ -1,4 +1,4 @@
-import { h, Component } from 'preact';
+import { h, Component, Fragment } from 'preact';
 import { ControlAction } from '../types/controls';
 
 interface Control {
@@ -44,7 +44,7 @@ export class ControlPanel extends Component<ControlPanelProps> {
             borderLeft: position === 'right' ? '1px solid #333' : 'none',
             borderBottom: !isLandscape ? '1px solid #333' : 'none',
             overflow: 'hidden',
-            justifyContent: isLandscape ? 'flex-end' : 'flex-start',
+            justifyContent: isLandscape ? 'center' : 'flex-start',
         };
 
         const getButtonStyle = (control: Control) => ({
@@ -68,22 +68,89 @@ export class ControlPanel extends Component<ControlPanelProps> {
             boxShadow: activeControl === control.action ? '0 2px 4px rgba(0,0,0,0.2)' : 'none',
         });
 
+        const directionalControlsStyle = {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateRows: 'repeat(3, 1fr)',
+            gap: '4px',
+            width: '100%',
+            height: '100%',
+            maxWidth: '120px',
+            maxHeight: '120px',
+            margin: '0 auto',
+        };
+
+        const getGridPosition = (control: Control) => {
+            switch (control.action) {
+                case 'moveUp':
+                    return { gridRow: 1, gridColumn: 2 };
+                case 'moveDown':
+                    return { gridRow: 3, gridColumn: 2 };
+                case 'moveLeft':
+                    return { gridRow: 2, gridColumn: 1 };
+                case 'moveRight':
+                    return { gridRow: 2, gridColumn: 3 };
+                default:
+                    return {};
+            }
+        };
+
+        const directionalControls = controls.filter(c =>
+            ['moveUp', 'moveDown', 'moveLeft', 'moveRight'].includes(c.action)
+        );
+        const actionControls = controls.filter(c => ['actionA', 'actionB'].includes(c.action));
+
         return (
             <div style={panelStyle}>
-                {controls.map(control => (
-                    <button
-                        key={control.action}
-                        onClick={() => onControlClick(control)}
-                        style={getButtonStyle(control)}
-                        onMouseDown={() => onControlMouseDown(control.action)}
-                        onMouseUp={onControlMouseUp}
-                        onMouseLeave={onControlMouseLeave}
-                    >
-                        {`╔═══╗
+                {isLandscape ? (
+                    <Fragment>
+                        <div style={directionalControlsStyle}>
+                            {directionalControls.map(control => (
+                                <button
+                                    key={control.action}
+                                    onClick={() => onControlClick(control)}
+                                    style={{ ...getButtonStyle(control), ...getGridPosition(control) }}
+                                    onMouseDown={() => onControlMouseDown(control.action)}
+                                    onMouseUp={onControlMouseUp}
+                                    onMouseLeave={onControlMouseLeave}
+                                >
+                                    {`╔═══╗
 ║ ${control.label} ║
 ╚═══╝`}
-                    </button>
-                ))}
+                                </button>
+                            ))}
+                        </div>
+                        {actionControls.map(control => (
+                            <button
+                                key={control.action}
+                                onClick={() => onControlClick(control)}
+                                style={getButtonStyle(control)}
+                                onMouseDown={() => onControlMouseDown(control.action)}
+                                onMouseUp={onControlMouseUp}
+                                onMouseLeave={onControlMouseLeave}
+                            >
+                                {`╔═══╗
+║ ${control.label} ║
+╚═══╝`}
+                            </button>
+                        ))}
+                    </Fragment>
+                ) : (
+                    controls.map(control => (
+                        <button
+                            key={control.action}
+                            onClick={() => onControlClick(control)}
+                            style={getButtonStyle(control)}
+                            onMouseDown={() => onControlMouseDown(control.action)}
+                            onMouseUp={onControlMouseUp}
+                            onMouseLeave={onControlMouseLeave}
+                        >
+                            {`╔═══╗
+║ ${control.label} ║
+╚═══╝`}
+                        </button>
+                    ))
+                )}
             </div>
         );
     }
