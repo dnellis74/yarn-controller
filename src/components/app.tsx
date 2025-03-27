@@ -22,7 +22,7 @@ const getWsUrl = () => {
 
 // Get token URL from environment or construct from current location
 const getTokenUrl = () => {
-    return 'https://ec2-3-92-134-219.compute-1.amazonaws.com/token';
+    return 'https://ascii-gaming.link/token';
     // Check for environment variable first
     // if (process.env.REACT_APP_TOKEN_URL) {
     //     return process.env.REACT_APP_TOKEN_URL;
@@ -125,7 +125,11 @@ export class App extends Component<{}, State> {
 
     handleControl = (control: Control) => {
         this.activeControl = control.action;
-        this.terminalRef?.sendControl(control.action);
+        if (control.action === 'actionA') {
+            this.terminalRef?.sendKey('\r');
+        } else {
+            this.terminalRef?.sendControl(control.action);
+        }
         setTimeout(() => {
             this.activeControl = null;
             this.forceUpdate();

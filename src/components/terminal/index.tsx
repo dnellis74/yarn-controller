@@ -20,6 +20,7 @@ interface State {
 
 export interface TerminalHandle {
     sendControl: (action: ControlAction) => void;
+    sendKey: (key: string) => void;
 }
 
 export class Terminal extends Component<Props, State> {
@@ -110,6 +111,10 @@ export class Terminal extends Component<Props, State> {
 
     sendControl = (action: ControlAction) => {
         this.xterm.sendControl(action);
+    };
+
+    sendKey = (key: string) => {
+        this.xterm.sendData(key);
     };
 
     render({ id }: Props, { modal, dimensions }: State) {
