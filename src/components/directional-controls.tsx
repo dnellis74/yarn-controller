@@ -1,6 +1,7 @@
 import { h, Component } from 'preact';
 import { Control, ControlPanelProps, containerStyle } from '../types/controls';
 import { Button } from './button';
+import { isDirectionalControl } from '../utils/button';
 
 const gridStyle = {
     display: 'grid',
@@ -37,9 +38,7 @@ export class DirectionalControls extends Component<ControlPanelProps> {
         onControlMouseUp,
         onControlMouseLeave,
     }: ControlPanelProps) {
-        const directionalControls = controls.filter(c =>
-            ['moveUp', 'moveDown', 'moveLeft', 'moveRight'].includes(c.action)
-        );
+        const directionalControls = controls.filter(isDirectionalControl);
 
         return (
             <div style={{ ...containerStyle, borderRight: '1px solid #333' }}>

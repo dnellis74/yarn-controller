@@ -1,6 +1,7 @@
 import { h, Component } from 'preact';
 import { Control, ControlPanelProps, containerStyle } from '../types/controls';
 import { Button } from './button';
+import { isActionControl } from '../utils/button';
 
 export class ActionControls extends Component<ControlPanelProps> {
     render({
@@ -11,7 +12,7 @@ export class ActionControls extends Component<ControlPanelProps> {
         onControlMouseUp,
         onControlMouseLeave,
     }: ControlPanelProps) {
-        const actionControls = controls.filter(c => ['actionA', 'actionB'].includes(c.action));
+        const actionControls = controls.filter(isActionControl);
 
         return (
             <div style={{ ...containerStyle, borderLeft: '1px solid #333' }}>

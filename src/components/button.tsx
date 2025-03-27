@@ -1,5 +1,6 @@
 import { h, Component } from 'preact';
 import { Control, ControlAction } from '../types/controls';
+import { getButtonText } from '../utils/button';
 
 interface ButtonProps {
     control: Control;
@@ -27,9 +28,7 @@ export class Button extends Component<ButtonProps> {
                 onMouseLeave={onMouseLeave}
                 className={`control-button ${activeControl === control.action ? 'active' : ''}`}
             >
-                {`╔═══╗
-║ ${control.label} ║
-╚═══╝`}
+                {getButtonText(control)}
             </button>
         );
     }
