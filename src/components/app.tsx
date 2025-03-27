@@ -8,7 +8,7 @@ import type { ClientOptions, FlowControl } from './terminal/xterm';
 
 // Get WebSocket URL from environment or construct from current location
 const getWsUrl = () => {
-    return 'wss://ec2-3-92-134-219.compute-1.amazonaws.com/ws';
+    return 'wss://ascii-gaming.link/ws';
     // Check for environment variable first
     // if (process.env.REACT_APP_WS_URL) {
     //     return process.env.REACT_APP_WS_URL;

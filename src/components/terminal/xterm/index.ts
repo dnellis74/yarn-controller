@@ -273,7 +273,7 @@ export class Xterm {
         register(addEventListener(socket, 'open', this.onSocketOpen));
         register(addEventListener(socket, 'message', this.onSocketData as EventListener));
         register(addEventListener(socket, 'close', this.onSocketClose as EventListener));
-        register(addEventListener(socket, 'error', () => (this.doReconnect = false)));
+        register(addEventListener(socket, 'error', this.onSocketError));
     }
 
     @bind
@@ -298,16 +298,76 @@ export class Xterm {
     }
 
     @bind
+    private onSocketError(event: Event) {
+        console.error('[ttyd] WebSocket error:', event);
+        const { overlayAddon } = this;
+
+        // Get detailed connection info for debugging
+        const wsUrl = new URL(this.options.wsUrl);
+        const debugInfo = {
+            protocol: wsUrl.protocol,
+            host: wsUrl.host,
+            timestamp: new Date().toISOString(),
+            readyState: this.socket?.readyState,
+        };
+
+        console.debug('[ttyd] Connection debug info:', debugInfo);
+
+        // Show detailed error in overlay
+        let errorMessage = 'Connection Error\n';
+        errorMessage += `Host: ${debugInfo.host}\n`;
+        errorMessage += `State: ${this.getReadyStateString()}\n`;
+        errorMessage += 'Check console for details';
+
+        overlayAddon.showOverlay(errorMessage);
+        this.doReconnect = false;
+    }
+
+    private getReadyStateString(): string {
+        switch (this.socket?.readyState) {
+            case WebSocket.CONNECTING:
+                return 'Connecting';
+            case WebSocket.OPEN:
+                return 'Open';
+            case WebSocket.CLOSING:
+                return 'Closing';
+            case WebSocket.CLOSED:
+                return 'Closed';
+            default:
+                return 'Unknown';
+        }
+    }
+
+    @bind
     private onSocketClose(event: CloseEvent) {
         console.log(`[ttyd] websocket connection closed with code: ${event.code}`);
 
+        // Add detailed close information
+        const closeInfo = {
+            code: event.code,
+            reason: event.reason || 'No reason provided',
+            wasClean: event.wasClean,
+            timestamp: new Date().toISOString(),
+        };
+        console.debug('[ttyd] Close details:', closeInfo);
+
         const { refreshToken, connect, doReconnect, overlayAddon } = this;
-        overlayAddon.showOverlay('Connection Closed');
+
+        // Show more detailed close information in overlay
+        let closeMessage = `Connection Closed\nCode: ${closeInfo.code}\n`;
+        if (!event.wasClean) {
+            closeMessage += 'Connection terminated unexpectedly\n';
+        }
+        if (event.reason) {
+            closeMessage += `Reason: ${event.reason}\n`;
+        }
+
+        overlayAddon.showOverlay(closeMessage);
         this.dispose();
 
         // 1000: CLOSE_NORMAL
         if (event.code !== 1000 && doReconnect) {
-            overlayAddon.showOverlay('Reconnecting...');
+            overlayAddon.showOverlay('Reconnecting...\nAttempting to reestablish connection');
             refreshToken().then(connect);
         } else if (this.closeOnDisconnect) {
             window.close();
@@ -317,11 +377,11 @@ export class Xterm {
                 const event = e.domEvent;
                 if (event.key === 'Enter') {
                     keyDispose.dispose();
-                    overlayAddon.showOverlay('Reconnecting...');
+                    overlayAddon.showOverlay('Reconnecting...\nInitiating new connection');
                     refreshToken().then(connect);
                 }
             });
-            overlayAddon.showOverlay('Press ⏎ to Reconnect');
+            overlayAddon.showOverlay('Connection closed\nPress ⏎ to Reconnect');
         }
     }
 
