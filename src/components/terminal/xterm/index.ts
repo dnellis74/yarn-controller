@@ -68,6 +68,9 @@ export interface XtermOptions {
     termOptions: ITerminalOptions;
 }
 
+const MIN_FONT_SIZE = 16;
+const MIN_TERMINAL_WIDTH = 80;
+
 function toDisposable(f: () => void): IDisposable {
     return { dispose: f };
 }
@@ -670,7 +673,7 @@ export class Xterm {
             const currentFontSize = terminal.options.fontSize || 14;
 
             // Calculate dimensions that would fit the minimum requirements (80x24)
-            const minWidth = 80 * charWidth;
+            const minWidth = MIN_TERMINAL_WIDTH * charWidth;
             const minHeight = 24 * charHeight;
 
             // Calculate the maximum font size that would allow our minimum dimensions
@@ -687,27 +690,27 @@ export class Xterm {
             }
 
             // Apply the new font size, ensuring it doesn't go below our minimum
-            terminal.options.fontSize = Math.max(5, Math.floor(maxFontSize));
+            terminal.options.fontSize = Math.max(MIN_FONT_SIZE, Math.floor(maxFontSize));
 
             // First fit to see what dimensions we get
             fitAddon.fit();
 
             // Get resulting dimensions and ensure they meet our minimum
             const { cols, rows } = terminal;
-            if (cols < 80 || rows < 24) {
+            if (cols < MIN_TERMINAL_WIDTH || rows < 24) {
                 // If we're still too small, force the minimum dimensions
-                terminal.resize(Math.max(80, cols), Math.max(24, rows));
+                terminal.resize(Math.max(MIN_TERMINAL_WIDTH, cols), Math.max(24, rows));
 
                 // Adjust font size down if needed to accommodate the forced dimensions
                 const scaleFactor = Math.min(
-                    viewportWidth / (80 * charWidth * (terminal.options.fontSize || 14)),
-                    viewportHeight / (24 * charHeight * (terminal.options.fontSize || 14))
+                    viewportWidth / (MIN_TERMINAL_WIDTH * charWidth * (terminal.options.fontSize || MIN_FONT_SIZE)),
+                    viewportHeight / (24 * charHeight * (terminal.options.fontSize || MIN_FONT_SIZE))
                 );
 
                 if (scaleFactor < 1) {
                     terminal.options.fontSize = Math.max(
-                        5,
-                        Math.floor((terminal.options.fontSize || 14) * scaleFactor)
+                        MIN_FONT_SIZE,
+                        Math.floor((terminal.options.fontSize || MIN_FONT_SIZE) * scaleFactor)
                     );
                 }
             }
