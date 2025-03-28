@@ -68,8 +68,9 @@ export interface XtermOptions {
     termOptions: ITerminalOptions;
 }
 
-const MIN_FONT_SIZE = 16;
+const MIN_FONT_SIZE = 14;
 const MIN_TERMINAL_WIDTH = 80;
+const MIN_TERMINAL_HEIGHT = 25;
 
 function toDisposable(f: () => void): IDisposable {
     return { dispose: f };
@@ -674,7 +675,7 @@ export class Xterm {
 
             // Calculate dimensions that would fit the minimum requirements (80x24)
             const minWidth = MIN_TERMINAL_WIDTH * charWidth;
-            const minHeight = 24 * charHeight;
+            const minHeight = MIN_TERMINAL_HEIGHT * charHeight;
 
             // Calculate the maximum font size that would allow our minimum dimensions
             let maxFontSize = Math.min(
@@ -697,14 +698,14 @@ export class Xterm {
 
             // Get resulting dimensions and ensure they meet our minimum
             const { cols, rows } = terminal;
-            if (cols < MIN_TERMINAL_WIDTH || rows < 24) {
+            if (cols < MIN_TERMINAL_WIDTH || rows < MIN_TERMINAL_HEIGHT) {
                 // If we're still too small, force the minimum dimensions
-                terminal.resize(Math.max(MIN_TERMINAL_WIDTH, cols), Math.max(24, rows));
+                terminal.resize(Math.max(MIN_TERMINAL_WIDTH, cols), Math.max(MIN_TERMINAL_HEIGHT, rows));
 
                 // Adjust font size down if needed to accommodate the forced dimensions
                 const scaleFactor = Math.min(
                     viewportWidth / (MIN_TERMINAL_WIDTH * charWidth * (terminal.options.fontSize || MIN_FONT_SIZE)),
-                    viewportHeight / (24 * charHeight * (terminal.options.fontSize || MIN_FONT_SIZE))
+                    viewportHeight / (MIN_TERMINAL_HEIGHT * charHeight * (terminal.options.fontSize || MIN_FONT_SIZE))
                 );
 
                 if (scaleFactor < 1) {
