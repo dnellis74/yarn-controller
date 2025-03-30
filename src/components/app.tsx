@@ -86,6 +86,7 @@ interface Control {
 
 interface State {
     isLandscape: boolean;
+    isFullscreen: boolean;
 }
 
 export class App extends Component<{}, State> {
@@ -101,24 +102,29 @@ export class App extends Component<{}, State> {
         { action: 'actionA', label: 'A', color: '#f44336' },
         { action: 'actionB', label: 'B', color: '#f44336' },
         { action: 'fullscreen', label: '⛶', color: '#4CAF50' },
+        { action: 'ctrlC', label: '^C', color: '#FF9800' },
     ];
 
     constructor() {
         super();
         this.state = {
             isLandscape: window.innerWidth > window.innerHeight,
+            isFullscreen: false,
         };
         this.orientationChangeHandler = this.handleOrientationChange.bind(this);
+        this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
     }
 
     componentDidMount() {
-        window.addEventListener('resize', this.orientationChangeHandler);
         window.addEventListener('orientationchange', this.orientationChangeHandler);
+        document.addEventListener('fullscreenchange', this.handleFullscreenChange);
+        // Check initial fullscreen state
+        this.handleFullscreenChange();
     }
 
     componentWillUnmount() {
-        window.removeEventListener('resize', this.orientationChangeHandler);
         window.removeEventListener('orientationchange', this.orientationChangeHandler);
+        document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
     }
 
     handleOrientationChange = () => {
@@ -126,18 +132,36 @@ export class App extends Component<{}, State> {
     };
 
     @bind
+    handleFullscreenChange() {
+        const isFullscreen = !!document.fullscreenElement;
+        this.setState({ isFullscreen });
+        // Update the fullscreen button label
+        const fullscreenControl = this.controls.find(c => c.action === 'fullscreen');
+        if (fullscreenControl) {
+            fullscreenControl.label = isFullscreen ? '⛶' : '⛶';
+        }
+        this.forceUpdate();
+    }
+
+    @bind
     handleControl(control: Control) {
         this.activeControl = control.action;
         if (control.action === 'fullscreen') {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error('Error attempting to enable fullscreen:', err);
+                });
             } else {
-                document.exitFullscreen();
+                document.exitFullscreen().catch(err => {
+                    console.error('Error attempting to exit fullscreen:', err);
+                });
             }
         } else if (control.action === 'actionA') {
             this.terminalRef?.sendKey('\r');
         } else if (control.action === 'actionB') {
             this.terminalRef?.sendKey(' ');
+        } else if (control.action === 'ctrlC') {
+            this.terminalRef?.sendKey('\x03'); // Ctrl+C
         } else {
             this.terminalRef?.sendControl(control.action);
         }
@@ -163,7 +187,7 @@ export class App extends Component<{}, State> {
     };
 
     render() {
-        const { isLandscape } = this.state;
+        const { isLandscape, isFullscreen } = this.state;
         const appStyle = {
             height: '100vh',
             width: '100vw',

@@ -109,17 +109,19 @@ export class ControlPanel extends Component<ControlPanelProps> {
                                 style={{ marginLeft: 'auto' }}
                             />
                         )}
-                        {controls.filter(c => c.action !== 'fullscreen').map(control => (
-                            <Button
-                                key={control.action}
-                                control={control}
-                                activeControl={activeControl}
-                                onClick={onControlClick}
-                                onMouseDown={onControlMouseDown}
-                                onMouseUp={onControlMouseUp}
-                                onMouseLeave={onControlMouseLeave}
-                            />
-                        ))}
+                        {controls
+                            .filter(c => c.action !== 'fullscreen')
+                            .map(control => (
+                                <Button
+                                    key={control.action}
+                                    control={control}
+                                    activeControl={activeControl}
+                                    onClick={onControlClick}
+                                    onMouseDown={onControlMouseDown}
+                                    onMouseUp={onControlMouseUp}
+                                    onMouseLeave={onControlMouseLeave}
+                                />
+                            ))}
                     </Fragment>
                 )}
             </div>
