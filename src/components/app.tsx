@@ -3,6 +3,7 @@ import { Terminal } from './terminal';
 import { DirectionalControls } from './directional-controls';
 import { ActionControls } from './action-controls';
 import { ControlAction } from '../types/controls';
+import { bind } from 'decko';
 
 import type { ITerminalOptions, ITheme } from '@xterm/xterm';
 import type { ClientOptions, FlowControl } from './terminal/xterm';
@@ -99,6 +100,7 @@ export class App extends Component<{}, State> {
         { action: 'moveRight', label: '>', color: '#2196F3' },
         { action: 'actionA', label: 'A', color: '#f44336' },
         { action: 'actionB', label: 'B', color: '#f44336' },
+        { action: 'fullscreen', label: '⛶', color: '#4CAF50' },
     ];
 
     constructor() {
@@ -123,10 +125,19 @@ export class App extends Component<{}, State> {
         this.setState({ isLandscape: window.innerWidth > window.innerHeight });
     };
 
-    handleControl = (control: Control) => {
+    @bind
+    handleControl(control: Control) {
         this.activeControl = control.action;
-        if (control.action === 'actionA') {
+        if (control.action === 'fullscreen') {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        } else if (control.action === 'actionA') {
             this.terminalRef?.sendKey('\r');
+        } else if (control.action === 'actionB') {
+            this.terminalRef?.sendKey(' ');
         } else {
             this.terminalRef?.sendControl(control.action);
         }
@@ -134,7 +145,7 @@ export class App extends Component<{}, State> {
             this.activeControl = null;
             this.forceUpdate();
         }, 200);
-    };
+    }
 
     handleControlMouseDown = (action: ControlAction) => {
         this.activeControl = action;

@@ -7,8 +7,10 @@
     font-family: monospace;
     white-space: pre;
     line-height: 1;
-    width: 24px;
-    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    width: auto;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;

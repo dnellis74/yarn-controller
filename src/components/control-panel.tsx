@@ -57,8 +57,10 @@ export class ControlPanel extends Component<ControlPanelProps> {
             fontFamily: 'monospace',
             whiteSpace: 'pre',
             lineHeight: 1,
-            width: '40px',
-            height: '40px',
+            minWidth: '40px',
+            minHeight: '40px',
+            width: 'auto',
+            height: 'auto',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -99,11 +101,26 @@ export class ControlPanel extends Component<ControlPanelProps> {
             ['moveUp', 'moveDown', 'moveLeft', 'moveRight'].includes(c.action)
         );
         const actionControls = controls.filter(c => ['actionA', 'actionB'].includes(c.action));
+        const fullscreenControl = controls.find(c => c.action === 'fullscreen');
 
         return (
             <div style={panelStyle}>
                 {isLandscape ? (
                     <Fragment>
+                        {fullscreenControl && (
+                            <button
+                                key={fullscreenControl.action}
+                                onClick={() => onControlClick(fullscreenControl)}
+                                style={{ ...getButtonStyle(fullscreenControl), marginBottom: 'auto' }}
+                                onMouseDown={() => onControlMouseDown(fullscreenControl.action)}
+                                onMouseUp={onControlMouseUp}
+                                onMouseLeave={onControlMouseLeave}
+                            >
+                                {`╔═══╗
+║ ${fullscreenControl.label} ║
+╚═══╝`}
+                            </button>
+                        )}
                         <div style={directionalControlsStyle}>
                             {directionalControls.map(control => (
                                 <button
@@ -136,20 +153,38 @@ export class ControlPanel extends Component<ControlPanelProps> {
                         ))}
                     </Fragment>
                 ) : (
-                    controls.map(control => (
-                        <button
-                            key={control.action}
-                            onClick={() => onControlClick(control)}
-                            style={getButtonStyle(control)}
-                            onMouseDown={() => onControlMouseDown(control.action)}
-                            onMouseUp={onControlMouseUp}
-                            onMouseLeave={onControlMouseLeave}
-                        >
-                            {`╔═══╗
+                    <Fragment>
+                        {fullscreenControl && (
+                            <button
+                                key={fullscreenControl.action}
+                                onClick={() => onControlClick(fullscreenControl)}
+                                style={{ ...getButtonStyle(fullscreenControl), marginLeft: 'auto' }}
+                                onMouseDown={() => onControlMouseDown(fullscreenControl.action)}
+                                onMouseUp={onControlMouseUp}
+                                onMouseLeave={onControlMouseLeave}
+                            >
+                                {`╔═══╗
+║ ${fullscreenControl.label} ║
+╚═══╝`}
+                            </button>
+                        )}
+                        {controls
+                            .filter(c => c.action !== 'fullscreen')
+                            .map(control => (
+                                <button
+                                    key={control.action}
+                                    onClick={() => onControlClick(control)}
+                                    style={getButtonStyle(control)}
+                                    onMouseDown={() => onControlMouseDown(control.action)}
+                                    onMouseUp={onControlMouseUp}
+                                    onMouseLeave={onControlMouseLeave}
+                                >
+                                    {`╔═══╗
 ║ ${control.label} ║
 ╚═══╝`}
-                        </button>
-                    ))
+                                </button>
+                            ))}
+                    </Fragment>
                 )}
             </div>
         );

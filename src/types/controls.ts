@@ -1,4 +1,4 @@
-export type ControlAction = 'moveUp' | 'moveDown' | 'moveLeft' | 'moveRight' | 'actionA' | 'actionB';
+export type ControlAction = 'moveUp' | 'moveDown' | 'moveLeft' | 'moveRight' | 'actionA' | 'actionB' | 'fullscreen';
 
 export interface Control {
     action: ControlAction;
