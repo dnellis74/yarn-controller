@@ -1,6 +1,13 @@
 import { h, Component } from 'preact';
 import { Control, ControlAction } from '../types/controls';
-import { getButtonText } from '../utils/button';
+
+const BUTTON_TEMPLATE = `╔═══╗
+║ {label} ║
+╚═══╝`;
+
+const getButtonText = (control: Control): string => {
+    return BUTTON_TEMPLATE.replace('{label}', control.label);
+};
 
 interface ButtonProps {
     control: Control;

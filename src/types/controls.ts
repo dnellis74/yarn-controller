@@ -13,6 +13,7 @@ export interface ControlPanelProps {
     onControlMouseDown: (action: ControlAction) => void;
     onControlMouseUp: () => void;
     onControlMouseLeave: () => void;
+    position?: 'left' | 'right';
 }
 
 export const containerStyle = {
