@@ -1,7 +1,6 @@
 import { h, Component } from 'preact';
 import { Control, ControlPanelProps, containerStyle } from '../types/controls';
 import { Button } from './button';
-import { isDirectionalControl } from '../utils/button';
 
 const gridStyle = {
     display: 'grid',
@@ -12,6 +11,10 @@ const gridStyle = {
     height: '72px',
     margin: '0 auto',
     padding: '0 4px',
+};
+
+const isDirectionalControl = (control: Control): boolean => {
+    return ['moveUp', 'moveDown', 'moveLeft', 'moveRight'].includes(control.action);
 };
 
 const getGridPosition = (control: Control) => {

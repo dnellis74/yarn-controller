@@ -1,7 +1,11 @@
 import { h, Component } from 'preact';
 import { ControlPanelProps, containerStyle } from '../types/controls';
 import { Button } from './button';
-import { isActionControl } from '../utils/button';
+import { Control } from '../types/controls';
+
+const isActionControl = (control: Control): boolean => {
+    return ['actionA', 'actionB', 'fullscreen', 'ctrlC'].includes(control.action);
+};
 
 export class ActionControls extends Component<ControlPanelProps> {
     render({
