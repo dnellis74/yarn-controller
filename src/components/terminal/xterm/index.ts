@@ -68,9 +68,9 @@ export interface XtermOptions {
     termOptions: ITerminalOptions;
 }
 
-const MIN_FONT_SIZE = 14;
-const MIN_TERMINAL_WIDTH = 80;
-const MIN_TERMINAL_HEIGHT = 25;
+const MIN_FONT_SIZE = 20;
+const MIN_TERMINAL_WIDTH = 60;
+const MIN_TERMINAL_HEIGHT = 16;
 
 function toDisposable(f: () => void): IDisposable {
     return { dispose: f };
